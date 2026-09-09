@@ -105,7 +105,16 @@
   #keys::-webkit-scrollbar{display:none}
   .key{background:var(--panel2);border:1px solid var(--line);color:var(--fg);
     border-radius:9px;padding:7px 10px;font:inherit;font-size:13px;flex:0 0 auto;cursor:pointer}
-  .key:active,.key.on{background:var(--accent);color:#1a1a19;border-color:var(--accent)}
+  .key{transition:background .12s,color .12s,border-color .12s,transform .06s}
+  .key:active{transform:scale(.94)}
+  .key:active,.key.on,.key.fired{background:var(--accent);color:#1a1a19;border-color:var(--accent)}
+  #toast{
+    position:absolute;left:50%;transform:translateX(-50%) translateY(6px);
+    bottom:12px;z-index:6;background:#000c;border:1px solid var(--line);
+    color:var(--fg);border-radius:11px;padding:7px 14px;font-size:13px;
+    opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   #typerow{display:flex;gap:8px;align-items:center}
   #scrtype{flex:1;background:var(--panel2);color:var(--fg);border:1px solid var(--line);
     border-radius:18px;padding:9px 14px;font:inherit;font-size:16px;min-width:0}
@@ -162,7 +171,7 @@
       <div class="list" id="projects"><div class="empty">Loading&hellip;</div></div>
     </div>
     <div id="chat" class="hide"><div id="msgs"></div></div>
-    <div id="screen" class="hide"><img id="scr" alt=""><div id="scrmsg">Connecting&hellip;</div>
+    <div id="screen" class="hide"><img id="scr" alt=""><div id="scrmsg">Connecting&hellip;</div><div id="toast"></div>
 </div>
   </main>
 
@@ -206,9 +215,9 @@
   <footer id="scrctl" class="hide">
     <div id="keys">
       <button class="key" id="kbd">&#9000;</button>
-      <button class="key" data-key="a" data-mods="cmd">Select all</button>
-      <button class="key" data-key="c" data-mods="cmd">Copy</button>
-      <button class="key" data-key="v" data-mods="cmd">Paste</button>
+      <button class="key" data-key="a" data-mods="cmd" data-label="Selected">Select all</button>
+      <button class="key" data-key="c" data-mods="cmd" data-label="Copied">Copy</button>
+      <button class="key" data-key="v" data-mods="cmd" data-label="Pasted">Paste</button>
       <button class="key" data-key="arrow-left">&larr;</button>
       <button class="key" data-key="arrow-up">&uarr;</button>
       <button class="key" data-key="arrow-down">&darr;</button>
@@ -648,10 +657,24 @@ function norm(clientX, clientY) {
     // send two.
   });
 
+  let toastTimer = null;
+  function toast(text) {
+    const t = $('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1100);
+  }
+
   for (const b of document.querySelectorAll('#keys .key[data-key]')) {
-    b.onclick = () => {
+    b.onclick = async () => {
+      // Light up on touch, and only say it worked once the Mac has answered:
+      // a key that never made it should not look like one that did.
+      b.classList.add('fired');
       flush();
-      queue({ action: 'key', key: b.dataset.key, mods: b.dataset.mods || '' });
+      await queue({ action: 'key', key: b.dataset.key, mods: b.dataset.mods || '' });
+      b.classList.remove('fired');
+      if (b.dataset.label) toast(b.dataset.label);
       if (b.dataset.key === 'delete') reset();
     };
   }
