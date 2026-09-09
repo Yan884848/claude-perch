@@ -1,0 +1,11 @@
+{
+  "name": "claude-perch",
+  "version": "1.0.0",
+  "description": "Start Claude Code sessions on your computer, from your phone.",
+  "main": "server.js",
+  "scripts": {
+    "start": "./start.sh"
+  },
+  "license": "MIT",
+  "engines": { "node": ">=18" }
+}
