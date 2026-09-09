@@ -72,6 +72,21 @@ That runs real Chrome with its own persistent profile, so logins survive
 between sessions — and when it hits one it can't solve, screen mode is right
 there for you to type the password yourself.
 
+One catch worth knowing before you go looking for a bug. The CLI also ships
+tools for the Claude for Chrome extension, and they sit in the same tool list.
+Asked to "open a browser", the model tends to reach for those first, and if the
+extension isn't connected it reports that and stops — with a perfectly good
+Playwright sitting right there unused. Either name the tool ("use playwright
+to open …"), or settle it once in `~/.claude/CLAUDE.md`:
+
+```
+Browser work: use the playwright MCP tools. The Claude for Chrome extension is
+not connected on this machine, so claude-in-chrome tools will always fail.
+```
+
+MCP servers are read when a session starts, so a session already running when
+you add this won't see it. Start a new one.
+
 ---
 
 ## Screen mode
