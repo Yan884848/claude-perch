@@ -4,6 +4,8 @@
 
 <p align="center">
   <img src="docs/screen.gif" width="380" alt="Driving the Mac from a phone: typing into an editor over Perch's screen mode">
+  <br>
+  <sub>Screen mode, sped up. <a href="docs/screen.mp4">Full-speed recording</a>.</sub>
 </p>
 
 Claude Code's Remote Control lets your phone *take over* a session — but the
