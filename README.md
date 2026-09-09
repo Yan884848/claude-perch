@@ -117,9 +117,9 @@ key events at all once an input is empty; the field holds a run of zero-width
 spaces so a backspace always has something to consume.
 
 The row above it is deliberately short: **⌨** hides or shows the keyboard,
-**Select all** and **Paste** are ⌘A and ⌘V, the arrows are arrow keys, and
-**HD** cycles resolution and frame rate for a bad connection. Everything else
-your phone's own keyboard already has.
+**Select all**, **Copy** and **Paste** are ⌘A / ⌘C / ⌘V, the arrows are arrow
+keys, and **HD** cycles resolution and frame rate for a bad connection.
+Everything else your phone's own keyboard already has.
 
 ### The two permissions
 
