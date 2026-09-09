@@ -58,13 +58,6 @@
   .dot.dead{background:#6b6a67}
   @keyframes pulse{50%{opacity:.25}}
   .empty{color:var(--dim);font-size:14px;padding:8px 16px 0}
-  .note{color:var(--dim);font-size:12.5px;line-height:1.5;margin:4px 14px 24px;
-    padding-top:12px;border-top:1px solid var(--line)}
-  .note b{color:var(--fg);font-weight:600}
-  .note code{display:block;margin:8px 0;padding:8px 10px;background:var(--panel2);
-    border:1px solid var(--line);border-radius:8px;color:var(--fg);
-    font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;
-    word-break:break-all;-webkit-user-select:all;user-select:all}
   .tag{font-size:11px;color:var(--dim);border:1px solid var(--line);
     border-radius:6px;padding:2px 6px;flex:0 0 auto}
   .kill{color:var(--dim);font-size:15px;padding:4px 8px;flex:0 0 auto}
@@ -117,6 +110,30 @@
   #scrtype{flex:1;background:var(--panel2);color:var(--fg);border:1px solid var(--line);
     border-radius:18px;padding:9px 14px;font:inherit;font-size:16px;min-width:0}
   #scrtype:focus{outline:none;border-color:#55534e}
+  #scrim{position:fixed;inset:0;background:#000a;z-index:20}
+  #sheet{
+    position:fixed;left:0;right:0;bottom:0;z-index:21;max-height:86dvh;
+    display:flex;flex-direction:column;background:var(--panel);
+    border-top:1px solid var(--line);border-radius:18px 18px 0 0;
+    padding:0 16px calc(12px + var(--safe-b));
+  }
+  #sheet .grab{flex:0 0 auto;width:38px;height:4px;border-radius:2px;
+    background:#5a5854;margin:9px auto 4px}
+  .sheetbody{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+  .sheetbody h2{font-size:13px;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--dim);margin:18px 0 6px;font-weight:600}
+  .sheetbody h2:first-child{margin-top:6px}
+  .sheetbody p{margin:0 0 10px;font-size:14px;line-height:1.55;color:#d7d5ce}
+  .sheetbody b{color:var(--fg)}
+  .sheetbody code{display:block;margin:8px 0 12px;padding:9px 11px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:9px;
+    color:var(--fg);font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+    word-break:break-all;-webkit-user-select:all;user-select:all}
+  .sheetbody code.inline{display:inline;padding:1px 5px;margin:0;font-size:12.5px}
+  #sheetclose{flex:0 0 auto;margin-top:10px;background:var(--panel2);color:var(--fg);
+    border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;
+    font-size:15px;font-weight:600;cursor:pointer}
+  #sheetclose:active{background:#3a3936}
   .hide{display:none !important}
 </style>
 </head>
@@ -125,6 +142,7 @@
   <header>
     <button id="back" class="iconbtn hide">&lsaquo;</button>
     <h1 id="title">Claude Perch</h1>
+    <button id="help" class="iconbtn">?</button>
   </header>
 
   <main id="main">
@@ -142,22 +160,43 @@
         <span class="hint">&mdash; tap to open in the Claude app, tap &#128172; to chat here</span>
       </div>
       <div class="list" id="projects"><div class="empty">Loading&hellip;</div></div>
-      <p class="note">Sessions started here show up in the Claude desktop app under
-        <b>Other</b> rather than under their project folder. The app files sessions by
-        the working directory it launched them with, and a session started from
-        outside it arrives without one.</p>
-      <p class="note">They are also plain CLI sessions, so none of the desktop app's
-        own tools come with them &mdash; including its browser. To give them one, add
-        Playwright to your CLI once:
-        <code>claude mcp add --scope user playwright -- npx -y @playwright/mcp@latest --browser chrome</code>
-        Then ask for it by name &mdash; <b>&ldquo;use playwright to open&hellip;&rdquo;</b> &mdash; or the
-        model reaches for the Claude for Chrome extension first and stops when it
-        isn't connected. Only sessions started after you add it will have it.</p>
     </div>
     <div id="chat" class="hide"><div id="msgs"></div></div>
     <div id="screen" class="hide"><img id="scr" alt=""><div id="scrmsg">Connecting&hellip;</div>
 </div>
   </main>
+
+  <div id="scrim" class="hide"></div>
+  <section id="sheet" class="hide">
+    <div class="grab"></div>
+    <div class="sheetbody">
+      <h2>Starting sessions</h2>
+      <p>Tap a project to start a session and open it in the Claude app. Tap
+        &#128172; to run it here in the page instead &mdash; no Remote Control needed,
+        but no images or permission prompts either.</p>
+
+      <h2>Where they show up</h2>
+      <p>In the Claude desktop app they appear under <b>Other</b>, not under their
+        project folder. The app files sessions by the working directory it launched
+        them with, and one started from outside arrives without it. Everything else
+        &mdash; the transcript, <code class="inline">claude --resume</code> &mdash;
+        works normally.</p>
+
+      <h2>Giving them a browser</h2>
+      <p>These are plain CLI sessions, so none of the desktop app's own tools come
+        with them. Add Playwright to your CLI once:</p>
+      <code>claude mcp add --scope user playwright -- npx -y @playwright/mcp@latest --browser chrome</code>
+      <p>Then ask for it by name &mdash; <b>&ldquo;use playwright to open&hellip;&rdquo;</b>
+        &mdash; or the model reaches for the Claude for Chrome extension first and
+        stops when it isn't connected. Only sessions started afterwards have it.</p>
+
+      <h2>Screen</h2>
+      <p>Tap to click and raise the keyboard, double tap to double click, hold for a
+        right click. Two fingers scroll, pinch zooms where your fingers are. Typing
+        goes to whatever has focus on the Mac, so tap the field there first.</p>
+    </div>
+    <button id="sheetclose">Done</button>
+  </section>
 
   <footer id="composer" class="hide">
     <textarea id="input" rows="1" placeholder="Message&hellip;" enterkeyhint="send"></textarea>
@@ -761,6 +800,17 @@ async function send() {
 
 $('send').onclick = send;
 $('screenrow').onclick = openScreen;
+
+function showSheet(on) {
+  $('sheet').classList.toggle('hide', !on);
+  $('scrim').classList.toggle('hide', !on);
+  if (on) try { localStorage.setItem('perch_help_seen', '1'); } catch {}
+}
+$('help').onclick = () => showSheet(true);
+$('sheetclose').onclick = () => showSheet(false);
+$('scrim').onclick = () => showSheet(false);
+// Worth one look on a fresh install; after that it lives behind the ? button.
+try { if (!localStorage.getItem('perch_help_seen')) setTimeout(() => showSheet(true), 400); } catch {}
 $('back').onclick = () => history.back();
 window.onpopstate = () => { if (scrOpen) closeScreen(); else if (cur) goHome(); };
 

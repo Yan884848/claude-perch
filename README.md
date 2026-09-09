@@ -34,6 +34,10 @@ the page itself.
 phone, with taps, scrolls and keystrokes going back the other way — for the
 things an agent shouldn't be doing on your behalf.
 
+The **?** in the corner holds the things you only need to read once: where
+these sessions turn up in the desktop app, and how to give them a browser. It
+opens by itself the first time.
+
 <br clear="right">
 
 ---
