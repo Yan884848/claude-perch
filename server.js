@@ -110,6 +110,10 @@ function tmux(args) {
 function tmuxSafe(args) {
   try { return tmux(args); } catch { return ''; }
 }
+/** has-session prints nothing either way, so the exit status is the answer. */
+function tmuxHasSession(name) {
+  try { tmux(['has-session', '-t', name]); return true; } catch { return false; }
+}
 
 /** Scrape the session URL Claude prints once Remote Control is live. */
 function rcUrl(tmuxName) {
@@ -152,6 +156,9 @@ async function rcWaitUrl(name, timeoutMs = 25000) {
   while (Date.now() - start < timeoutMs) {
     const u = rcUrl(name);
     if (u) return u;
+    // The session can be killed while we are still waiting for its URL;
+    // polling a pane that no longer exists just fills the log with noise.
+    if (!tmuxHasSession(name)) return null;
     await new Promise((r) => setTimeout(r, 900));
   }
   return null;
@@ -297,6 +304,8 @@ const screen = {
   error: null,
   stopTimer: null,
   failedAt: 0,
+  stopping: false,
+  restarts: [],
   opts: { width: 1100, fps: 5, quality: 0.45 },
 };
 const SCREEN_IDLE_MS = 10000;
@@ -338,16 +347,33 @@ function screenStart() {
   });
   proc.on('exit', (code) => {
     screen.proc = null;
-    if (code) {
-      screen.failedAt = Date.now();
-      screen.error = screen.error || `capture exited (${code})`;
+    const wasStopping = screen.stopping;
+    screen.stopping = false;
+    if (!code || wasStopping) return;
+    screen.error = screen.error || `capture exited (${code})`;
+
+    // ScreenCaptureKit drops the stream on its own — the display sleeping is
+    // enough to do it. Someone watching should not have to close the page and
+    // open it again, so put it back up, unless it is failing in a loop (a
+    // revoked permission looks exactly like this, and spinning on it helps
+    // nobody).
+    if (!screen.clients.size) { screen.failedAt = Date.now(); return; }
+    const now = Date.now();
+    screen.restarts = screen.restarts.filter((t) => now - t < 60000);
+    if (screen.restarts.length >= 5) {
+      screen.failedAt = now;
+      screen.error = `capture keeps failing: ${screen.error}`;
+      return;
     }
+    screen.restarts.push(now);
+    setTimeout(() => { if (screen.clients.size) screenStart(); }, 1000);
   });
 }
 
 function screenStop() {
   clearTimeout(screen.stopTimer);
   screen.stopTimer = null;
+  screen.stopping = true;
   if (screen.proc) { try { screen.proc.kill('SIGTERM'); } catch {} }
   screen.proc = null;
 }
@@ -508,6 +534,7 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/screen/stream' && req.method === 'GET') {
       screen.failedAt = 0;
+      screen.restarts = [];
       screenStart();
       res.writeHead(200, {
         'content-type': 'multipart/x-mixed-replace; boundary=perchframe',
