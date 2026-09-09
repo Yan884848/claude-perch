@@ -2,6 +2,10 @@
 
 **Start Claude Code sessions on your computer, from your phone.**
 
+<p align="center">
+  <img src="docs/screen.gif" width="380" alt="Driving the Mac from a phone: typing into an editor over Perch's screen mode">
+</p>
+
 Claude Code's Remote Control lets your phone *take over* a session — but the
 session has to already exist, which means walking back to your computer and
 typing `claude` first. Perch closes that gap: it's a small always-on service on
@@ -17,16 +21,20 @@ streaming interface (`claude -p --output-format stream-json`) for in-page chat.
 
 ## What it looks like
 
-```
-Running
-  ● myapp                          /Users/you/Projects/myapp        ✕
-  ● api-server                      /Users/you/Projects/api-server    ✕
+<img src="docs/home.png" width="360" align="right" alt="Perch's project list on a phone">
 
-Start a session — tap to open in the Claude app, tap 💬 to chat here
-  myapp          /Users/you/Projects/myapp              💬  +
-  api-server      /Users/you/Projects/api-server          💬  +
-  dotfiles        /Users/you/dotfiles                     💬  +
-```
+Your project directories, on a page your phone can reach. Tap a row and a real
+Claude Code session starts on the computer in that directory, then opens in the
+Claude app a few seconds later. Tap 💬 instead and the conversation renders in
+the page itself.
+
+**Screen** at the top is the other half: the Mac's display, streamed to the
+phone, with taps, scrolls and keystrokes going back the other way — for the
+things an agent shouldn't be doing on your behalf.
+
+<br clear="right">
+
+---
 
 ## Two modes
 
@@ -41,11 +49,28 @@ Start a session — tap to open in the Claude app, tap 💬 to chat here
 App mode is the good one. Web mode is the fallback for when Remote Control
 isn't available to you, or the relay is having a bad day.
 
-One thing to know about app mode: the session shows up in the Claude desktop
-app on your Mac under **Other**, not under its project folder. The desktop app
-files sessions by the working directory it launched them with, and a session
-started from outside it arrives without one. The transcript, the directory and
-`claude --resume` all work normally — it is only where the sidebar puts it.
+Two things to know about app mode.
+
+The session shows up in the Claude desktop app on your Mac under **Other**, not
+under its project folder. The desktop app files sessions by the working
+directory it launched them with, and a session started from outside it arrives
+without one. The transcript, the directory and `claude --resume` all work
+normally — it is only where the sidebar puts it.
+
+And these are plain CLI sessions, so they do not get the tools the desktop app
+injects into sessions *it* starts — its built-in browser, computer use, and the
+rest. A Perch session sees whatever MCP servers your own CLI config has, which
+by default is none. If you want the agent to browse, give the CLI its own
+browser:
+
+```bash
+claude mcp add --scope user playwright -- \
+  npx -y @playwright/mcp@latest --browser chrome --user-data-dir ~/.claude-browser
+```
+
+That runs real Chrome with its own persistent profile, so logins survive
+between sessions — and when it hits one it can't solve, screen mode is right
+there for you to type the password yourself.
 
 ---
 
